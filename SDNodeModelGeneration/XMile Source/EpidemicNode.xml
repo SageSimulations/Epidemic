@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	XML Interchange Language for System Dynamics (XMILE) Version 1.0
+	OASIS Committee Specification Draft 01 / Public Review Draft 01
+	26 August 2014
+	Copyright (c) OASIS Open 2014. All rights reserved.
+	Source: http://docs.oasis-open.org/xmile/xmile/v1.0/csprd01/examples/
+     
+-->
+<xmile version="1.0" xmlns="http://docs.oasis-open.org/xmile/ns/XMILE/v1.0" xmlns:isee="http://iseesystems.com/XMILE">
+  <header>
+    <options namespace="std" />
+    <vendor>Highpoint Software Systems, LLC</vendor>
+    <product version="10.0.2" lang="en">Sage</product>
+    <name>EpidemicNode.xml</name>
+    <copyright>(C) 2019 by Highpoint Software Systems, LLC</copyright>
+  </header>
+
+  <behavior>
+    <flow>
+      <nonnegative />
+    </flow>
+  </behavior>
+
+  <style color="red" />
+
+  <sim_specs method="RK4" timeunits="day">
+    <start>0</start>
+    <stop>720</stop>
+    <dt>1.0</dt>
+  </sim_specs>
+  
+  <CodeGen>
+  	<namespace>test.models</namespace>
+    <classname>EpidemicNode</classname>
+  </CodeGen>
+
+  <model>
+    <variables>
+    	
+      <stock name="NotSusceptible">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>BornImmune</inflow>
+        <inflow>Immunized</inflow>
+        <outflow>DiedNotSusceptible</outflow>
+      </stock>
+      <stock name="Susceptible">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>BornSusceptible</inflow>
+        <inflow>Remission</inflow>
+        <outflow>Contracted</outflow>
+        <outflow>Immunized</outflow>
+        <outflow>DiedSusceptible</outflow>
+      </stock>
+      <stock name="ContagiousAsymptomatic">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>Contracted</inflow>
+        <outflow>Progressed1</outflow>
+        <outflow>SuccumbedEarly1</outflow>
+      </stock>
+      <stock name="ContagiousSymptomatic">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>Progressed1</inflow>
+        <outflow>Progressed2</outflow>
+        <outflow>SuccumbedEarly2</outflow>
+      </stock>
+      <stock name="NonContagiousInfected">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>Progressed2</inflow>
+        <outflow>Remission</outflow>
+        <outflow>Recovery</outflow>
+        <outflow>DiedInfected</outflow>
+        <outflow>Succumbed</outflow>
+      </stock>
+      <stock name="RecoveredImmune">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>Recovery</inflow>
+        <outflow>DiedRecoveredImmune</outflow>
+      </stock>
+      <stock name="Killed">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>Succumbed</inflow>
+        <inflow>SuccumbedEarly1</inflow>
+        <inflow>SuccumbedEarly2</inflow>
+      </stock>
+      <stock name="Dead">
+        <eqn>0 /* Need initialization */</eqn>
+        <!--doc></doc-->
+        <inflow>DiedNotSusceptible</inflow>
+        <inflow>DiedSusceptible</inflow>
+        <inflow>DiedRecoveredImmune</inflow>
+        <inflow>DiedInfected</inflow>
+      </stock>
+      
+      <flow name="BornImmune">
+        <eqn>PeriodAdjust(Locale.BirthRate * Locale.Population * Disease.NaturalImmunity)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="BornSusceptible">
+        <eqn>PeriodAdjust(Locale.BirthRate * Locale.Population * (1.0 - Disease.NaturalImmunity))</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Immunized">
+        <eqn>PeriodAdjust(Susceptible * ImmunizationRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Contracted">
+        <eqn>PeriodAdjust(Susceptible * Exposure * ContractionRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Progressed1">
+        <eqn>PeriodAdjust(ContagiousAsymptomatic * disease.NominalSuccumbProgress1Rate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Progressed2">
+        <eqn>PeriodAdjust(ContagiousSymptomatic * disease.NominalSuccumbProgress2Rate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Succumbed">
+        <eqn>PeriodAdjust(NonContagiousInfected * disease.NominalSuccumbRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Recovery">
+        <eqn>PeriodAdjust(NonContagiousInfected * disease.NominalRecoveryRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="DiedInfected">
+        <eqn>PeriodAdjust(NonContagiousInfected * Locale.MortalityRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="SuccumbedEarly1">
+        <eqn>PeriodAdjust(ContagiousAsymptomatic * disease.NominalSuccumbEarly1Rate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="SuccumbedEarly2">
+        <eqn>PeriodAdjust(ContagiousSymptomatic * disease.NominalSuccumbEarly2Rate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="DiedNotSusceptible">
+        <eqn>PeriodAdjust(NotSusceptible * Locale.MortalityRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="DiedSusceptible">
+        <eqn>PeriodAdjust(Susceptible * Locale.MortalityRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      <flow name="Remission">
+        <eqn>PeriodAdjust(ContagiousAsymptomatic * disease.NominalRemissionRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+       <flow name="DiedRecoveredImmune">
+        <eqn>PeriodAdjust(RecoveredImmune * Locale.MortalityRate)</eqn>
+        <!--doc></doc-->
+      </flow>
+      
+      <aux name="Population">
+        <eqn>NotSusceptible + Susceptible + ContagiousAsymptomatic + ContagiousSymptomatic + NonContagiousInfected + RecoveredImmune</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="Immune">
+        <eqn>NotSusceptible + RecoveredImmune</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="ImmunizationRate">
+        <eqn>FractionAdjust(policy.TargetImmunizationRate * (1.0 - (Immune / (Population &lt; 0.0001 ? 1 : Population ))) * (locale.HealthCareEffectiveness))</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="ExposureRate">
+      	<eqn>FractionAdjust((m_contagiousAsymptomatic + (Quarantined ? (1.0 - locale.HealthCareEffectiveness):1.0)*m_contagiousSymptomatic)/(Population==0?1:Population))</eqn>
+      </aux>
+      <aux name="ContractionRate">
+        <eqn>FractionAdjust((disease.NominalContractionRate * locale.PopulationDensity) / (disease.NominalPopulationDensity * locale.Sanitation))</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="AsymptomaticPeriod">
+        <eqn>PeriodAdjust(disease.NominalAsymptomaticPeriod)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="SymptomaticPeriod">
+        <eqn>PeriodAdjust(disease.NominalSymptomaticPeriod)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="NonContagiousInfectedPeriod">
+        <eqn>PeriodAdjust(disease.NominalNonContagiousInfectedPeriod)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="RemissionRate">
+        <eqn>FractionAdjust(disease.NominalSymptomaticPeriod * disease.NominalRemissionRate) </eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="RecoveryRate">
+        <eqn>FractionAdjust(disease.NominalRecoveryRate * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="SuccumbedRate">
+        <eqn>FractionAdjust(disease.NominalSuccumbRate * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="SuccumbedEarly1Rate">
+        <eqn>FractionAdjust(disease.NominalSuccumbEarly1Rate * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="SuccumbedEarly2Rate">
+        <eqn>FractionAdjust(disease.NominalSuccumbEarly2Rate * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="MortalityRateAsymptomatic">
+        <eqn>FractionAdjust(disease.NominalAsymptomaticMortalityRate  * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="MortalityRateSymptomatic">
+        <eqn>FractionAdjust(disease.NominalSymptomaticMortalityRate * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+      <aux name="MortalityRateNonContagiousInfected">
+        <eqn>FractionAdjust(disease.NominalNonContagiousInfectedMortalityRate * locale.HealthCareEffectiveness)</eqn>
+        <!--doc></doc-->
+      </aux>
+    </variables>
+  </model>
+</xmile>

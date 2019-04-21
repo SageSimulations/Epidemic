@@ -1,0 +1,10 @@
+\uFEFFhttps://openflights.org/data.html <-- All airport & flight data.
+http://sedac.ciesin.columbia.edu/data/sets/browse <-- All population & land/water data.
+https://thetravelinsider.info/airplanetypes.htm <-- Rough equipment capacity data. (Aircraft Capacity.xls, and equipmentLoading.dat)
+More from https://en.wikipedia.org/wiki/List_of_ICAO_aircraft_type_designators and related pages.
+http://www.jacanaent.com/JacTechLib/07Aviation/AircraftTypeCodes.txt
+http://www.avcodes.co.uk/acrtypes.asp
+
+
+
+

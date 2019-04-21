@@ -1,0 +1,23 @@
+ALTER TABLE map_route_equipment
+ADD FOREIGN KEY fk_route(RouteID)
+REFERENCES routes(RouteID)
+ON DELETE NO ACTION
+ON UPDATE CASCADE;
+
+ALTER TABLE map_route_equipment
+ADD FOREIGN KEY fk_equipment(EquipmentID)
+REFERENCES equipment(EquipmentID)
+ON DELETE NO ACTION
+ON UPDATE CASCADE;
+
+ALTER TABLE routes
+ADD FOREIGN KEY fk_fromAirport(SourceAirportID)
+REFERENCES airports(AirportID)
+ON DELETE NO ACTION
+ON UPDATE CASCADE;
+
+ALTER TABLE routes
+ADD FOREIGN KEY fk_toAirport(DestinationAirportID)
+REFERENCES airports(AirportID)
+ON DELETE NO ACTION
+ON UPDATE CASCADE;

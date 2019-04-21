@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{8DF7B8B1-B27D-45BB-A765-23D0649D669D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Core.Graphical</RootNamespace>
+    <AssemblyName>Core.Graphical</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.Core.1.0.0\lib\net45\OxyPlot.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="OxyPlot.WindowsForms, Version=1.0.0.0, Culture=neutral, PublicKeyToken=245eacd6b5d2d338, processorArchitecture=MSIL">
+      <HintPath>..\packages\OxyPlot.WindowsForms.1.0.0\lib\net45\OxyPlot.WindowsForms.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Sage, Version=4.0.1.27851, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Highpoint.Sage.4.0.2\lib\net45\Sage.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WeifenLuo.WinFormsUI.Docking, Version=3.0.6.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\packages\DockPanelSuite.3.0.6\lib\net40\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking.ThemeVS2012, Version=3.0.6.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\packages\DockPanelSuite.ThemeVS2012.3.0.6\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2012.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking.ThemeVS2013, Version=3.0.6.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\packages\DockPanelSuite.ThemeVS2013.3.0.6\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2013.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WeifenLuo.WinFormsUI.Docking.ThemeVS2015, Version=3.0.6.0, Culture=neutral, PublicKeyToken=5cded1a1a0a7b481, processorArchitecture=MSIL">
+      <HintPath>..\packages\DockPanelSuite.ThemeVS2015.3.0.6\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Wibci.CountryReverseGeocode">
+      <HintPath>..\InitialGraphical\bin\Debug\Wibci.CountryReverseGeocode.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ConsoleWriter.cs" />
+    <Compile Include="Dockable Content\DockableChart.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dockable Content\DockableChart.Designer.cs">
+      <DependentUpon>DockableChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dockable Content\DockableConsole.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dockable Content\DockableConsole.Designer.cs">
+      <DependentUpon>DockableConsole.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dockable Content\DockableMap.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dockable Content\DockableMap.Designer.cs">
+      <DependentUpon>DockableMap.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dockable Content\DockablePropertyGrid.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dockable Content\DockablePropertyGrid.Designer.cs">
+      <DependentUpon>DockablePropertyGrid.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PlotControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="GraphicalUtilities.cs" />
+    <Compile Include="MapControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj">
+      <Project>{6220ceb3-89c5-422b-af10-a9ab22c3c04f}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Dockable Content\DockableChart.resx">
+      <DependentUpon>DockableChart.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dockable Content\DockableConsole.resx">
+      <DependentUpon>DockableConsole.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dockable Content\DockableMap.resx">
+      <DependentUpon>DockableMap.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dockable Content\DockablePropertyGrid.resx">
+      <DependentUpon>DockablePropertyGrid.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="content\Chart.ico" />
+    <Content Include="content\Data.ico" />
+    <Content Include="content\TextOut.png" />
+    <Content Include="content\WorldMap.ico" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
