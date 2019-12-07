@@ -1,6 +1,6 @@
 ﻿namespace Core.Graphical.Dockable_Content
 {
-    partial class DockableChart
+    partial class DockableTrendChart
     {
         /// <summary> 
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DockableChart));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DockableTrendChart));
             this.m_plotView = new OxyPlot.WindowsForms.PlotView();
             this.SuspendLayout();
             // 

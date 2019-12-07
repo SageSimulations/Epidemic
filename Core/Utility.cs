@@ -37,4 +37,9 @@ namespace Core
                 );
         }
     }
+
+    public interface ILineWriter
+    {
+        void WriteLine(string s);
+    }
 }

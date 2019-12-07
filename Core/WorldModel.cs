@@ -18,7 +18,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Highpoint.Sage.SimCore;
@@ -26,22 +25,45 @@ using Highpoint.Sage.SystemDynamics;
 
 namespace Core
 {
+    public struct Coordinates
+    {
+        public int X;
+        public int Y;
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Coordinates)
+            {
+                return ((Coordinates)obj).X == X && ((Coordinates)obj).Y == Y;
+            }
+            return false;
+        }
+
+        public override string ToString()
+        {
+            return $"({X}, {Y})";
+        }
+
+        internal double DistanceTo(Coordinates destination)
+        {
+            return Math.Sqrt(Math.Pow(X-destination.X, 2) + Math.Pow(Y - destination.Y, 2));
+        }
+    }
+
     /// <summary>
     /// Class WorldModel.
     /// </summary>
     public class WorldModel
     {
-
+        private static readonly double EPSILON = 0.00001;
+        private static Random m_random = new Random();
         public GlobalAirTravelPolicy GlobalAirTravelPolicy = new GlobalAirTravelPolicy();
 
+        private readonly Dictionary<string, SimCountryData> m_countryDataByCountryCodes; 
         /// <summary>
         /// The m data
         /// </summary>
-        private MapData m_mapData;
-        /// <summary>
-        /// The m data
-        /// </summary>
-        private List<CountryData> m_countryData;
+        private readonly MapData m_mapData;
         /// <summary>
         /// The m nodes
         /// </summary>
@@ -49,12 +71,12 @@ namespace Core
         /// <summary>
         /// The m size
         /// </summary>
-        private Size m_size;
+        private readonly Size m_size;
 
         /// <summary>
         /// The m controller
         /// </summary>
-        private Controller m_controller;
+        private readonly Controller m_controller;
 
         /// <summary>
         /// Gets the execution parameters.
@@ -87,14 +109,19 @@ namespace Core
         /// </summary>
         /// <param name="mapData">The map data.</param>
         /// <param name="countryData">The country data.</param>
+        /// <param name="ortCounts">For each country, the number of Outbreak Response Teams it has, and the color they are rendered in.</param>
         /// <param name="execParameters">The execute parameters.</param>
-        public WorldModel(MapData mapData, List<CountryData> countryData, ExecParameters execParameters = null)
+        public WorldModel(MapData mapData, List<SimCountryData> countryData, Dictionary<string, Tuple<int,Color>> ortCounts = null, ExecParameters execParameters = null)
         {
+            
             Executive = ExecFactory.Instance.CreateExecutive(ExecType.FullFeatured);
             ExecutionParameters = execParameters?? new ExecParameters();
             m_controller = new Controller(this);
 
-            m_countryData = countryData;
+            m_countryDataByCountryCodes = new Dictionary<string, SimCountryData>();
+            countryData.ForEach(n=> m_countryDataByCountryCodes.Add(n.CountryCode, n));
+
+            m_ortCounts = ortCounts??new Dictionary<string, Tuple<int, Color>>();
             m_mapData = mapData;
             m_nodes = new DiseaseNode[m_mapData.Width, m_mapData.Height];
             m_size = new Size(m_mapData.Width, m_mapData.Height);
@@ -142,47 +169,96 @@ namespace Core
             CreateAndAssignGovernments();
         }
 
-        private List<NationalGovernment> m_governments = new List<NationalGovernment>();
-        public List<NationalGovernment> Governments => m_governments; 
+        private readonly List<NationalGovernment> m_governments = new List<NationalGovernment>();
+        private readonly Dictionary<string, Tuple<int, Color>> m_ortCounts;
+
+        public List<NationalGovernment> Governments => m_governments;
+
+        private List<OutbreakResponseTeam> m_allORTs; 
+
         private void CreateAndAssignGovernments()
         {
+            m_allORTs = new List<OutbreakResponseTeam>();
+            ILineWriter console = Locator.Resolve<ILineWriter>("console");
+            Dictionary<string, List<Coordinates>> nodeToCountryMapping = new Dictionary<string, List<Coordinates>>();
 
-            Dictionary<string, List<DiseaseNode>> nodeToCountryMapping = new Dictionary<string, List<DiseaseNode>>();
-
-            foreach (DiseaseNode diseaseNode in m_nodes)
+            for (int x = 0; x < m_mapData.Width; x++)
             {
-                string cc = diseaseNode.MapCell.CountryCode;
-                if ( cc != null && !"--".Equals(cc) )
+                for (int y = 0; y < m_mapData.Height; y++)
                 {
-                    List<DiseaseNode> diseaseNodes;
-                    if (!nodeToCountryMapping.TryGetValue(cc, out diseaseNodes))
+                    DiseaseNode dn = m_nodes[x, y];
+                    string cc = dn.MapCell.CountryCode;
+                    if (cc != null && !"--".Equals(cc))
                     {
-                        diseaseNodes = new List<DiseaseNode>();
-                        nodeToCountryMapping.Add(cc, diseaseNodes);
+                        List<Coordinates> diseaseNodeCoordinates;
+                        if (!nodeToCountryMapping.TryGetValue(cc, out diseaseNodeCoordinates))
+                        {
+                            diseaseNodeCoordinates = new List<Coordinates>();
+                            nodeToCountryMapping.Add(cc, diseaseNodeCoordinates);
+                        }
+                        diseaseNodeCoordinates.Add(new Coordinates {X = x, Y = y});
                     }
-                    diseaseNodes.Add(diseaseNode);
                 }
             }
 
-            foreach (CountryData countryData in CountryData)
+            Dictionary<string, NationalGovernment> govts = new Dictionary<string, NationalGovernment>();
+            for (int x = 0; x < m_mapData.Width; x++)
             {
-                if (nodeToCountryMapping.ContainsKey(countryData.CountryCode))
+                for (int y = 0; y < m_mapData.Height; y++)
                 {
-                    NationalGovernment ng = new NationalGovernment()
+                    DiseaseNode dn = m_nodes[x, y];
+                    string countryCode = dn.MapCell.CountryCode;
+                    if ("--".Equals(countryCode)) continue;
+                    if (countryCode == null) continue;
+                    if (!m_countryDataByCountryCodes.ContainsKey(countryCode))
                     {
-                        CountryData = countryData,
-                        DiseaseNodes = nodeToCountryMapping[countryData.CountryCode]
-                    };
-                    countryData.Government = ng;
-                    m_governments.Add(ng);
-                }
-                else
-                {
-                    Console.WriteLine($"Could not find a list of nodes for country code {countryData.CountryCode}");
+                        //console.WriteLine($"No country data for country code \"{countryCode}\".");
+                        continue;
+                    }
+                    SimCountryData simCountryData = m_countryDataByCountryCodes[countryCode];
+                    if (nodeToCountryMapping.ContainsKey(dn.MapCell.CountryCode))
+                    {
+                        if (!govts.ContainsKey(countryCode))
+                        {
+                            NationalGovernment ng = new NationalGovernment(this)
+                            {
+                                WorldModel = this,
+                                SimCountryData = m_countryDataByCountryCodes[countryCode],
+                                DiseaseNodeCoordinates = nodeToCountryMapping[countryCode]
+                            };
+
+                            if (m_ortCounts.ContainsKey(simCountryData.CountryCode))
+                            {
+                                var ortCount = m_ortCounts[simCountryData.CountryCode];
+                                int numberOfResponseTeams = ortCount.Item1;
+                                for (int i = 0; i < numberOfResponseTeams; i++)
+                                {
+                                    int randomDiseaseNode = m_random.Next(0, ng.DiseaseNodeCoordinates.Count - 1);
+                                    Coordinates initialCoordinates = ng.DiseaseNodeCoordinates[randomDiseaseNode];
+                                    OutbreakResponseTeam ort = 
+                                        new OutbreakResponseTeam(simCountryData.CountryCode, i, ortCount.Item2, this, initialCoordinates);
+                                    ng.ResponseTeams.Add(ort);
+                                    simCountryData.ResponseTeams.Add(ort);
+                                    m_allORTs.Add(ort);
+                                }
+                            }
+
+                            simCountryData.Government = ng;
+                            govts.Add(countryCode, ng);
+                            ng.UpdateDiseaseNodes(true);
+                        }
+                    }
+                    else
+                    {
+                        console.WriteLine($"Could not find a list of nodes for country code {simCountryData.CountryCode}");
+                    }
+
                 }
             }
+            m_governments.AddRange(govts.Values);
         }
 
+        public DiseaseNode[,] DiseaseNodes => m_nodes;
         /// <summary>
         /// Gets the map data.
         /// </summary>
@@ -190,15 +266,9 @@ namespace Core
         public MapData MapData => m_mapData;
 
         /// <summary>
-        /// Gets the map data.
-        /// </summary>
-        /// <value>The map data.</value>
-        public List<CountryData> CountryData => m_countryData;
-
-        /// <summary>
         /// Announces when a new iteration is available.
         /// </summary>
-        public event Action<DiseaseNode[,], double[], List<RouteData>> NewIterationAvailable;
+        public event Action<DiseaseNode[,], double[], List<RouteData>, List<OutbreakResponseTeam>> NewIterationAvailable;
 
         /// <summary>
         /// Runs the specified manual reset event1.
@@ -209,7 +279,7 @@ namespace Core
         {
             while (m_nodes[0, 0].Start + (m_nodes[0, 0].TimeSliceNdx * m_nodes[0, 0].TimeStep) < m_nodes[0, 0].Finish)
             {
-                Update(manualResetEvent1, manualResetEvent2);
+                Update(Executive, manualResetEvent1, manualResetEvent2);
             }
         }
 
@@ -249,22 +319,25 @@ namespace Core
         /// <param name="userdata">The userdata.</param>
         internal void Update(IExecutive exec, object userdata)
         {
-            Update();
+            Update(exec);
         }
 
         /// <summary>
-        /// Updates the specified manual reset event1.
+        /// Updates the world model by one SD timeslice.
         /// </summary>
+        /// <param name="exec">The executive under which this update is being done.</param>
         /// <param name="manualResetEvent1">The manual reset event1.</param>
         /// <param name="manualResetEvent2">The manual reset event2.</param>
-        internal void Update(ManualResetEvent manualResetEvent1 = null, ManualResetEvent manualResetEvent2 = null)
+        internal void Update(IExecutive exec, ManualResetEvent manualResetEvent1 = null, ManualResetEvent manualResetEvent2 = null)
         {
+            ILineWriter console = Locator.Resolve<ILineWriter>("console");
+            m_governments.ForEach(n=>n.UpdateDiseaseNodes());
             bool travelOnlyFromToApparentlyDiseaseFree = NoAirTravelFromToKnownInfected;
             manualResetEvent1?.WaitOne();
             manualResetEvent2?.WaitOne();
             //DateTime now = DateTime.Now;
             DiseaseNode[,] newNodes = new DiseaseNode[m_mapData.Width, m_mapData.Height];
-            // Progress the simulation one timestep.
+            // Progress the simulation one time step.
 
             int count1 = 0, count2 = 0;
 
@@ -274,9 +347,9 @@ namespace Core
                 {
                     foreach (var tuple in m_districtsOfInterest)
                     {
-                        Console.WriteLine($"Inoculating at {tuple.Item1},{tuple.Item2} with patient zero.");
+                        console.WriteLine($"Inoculating at {tuple.Item1},{tuple.Item2} with patient zero.");
                         m_nodes[tuple.Item1, tuple.Item2].ContagiousAsymptomatic++;
-                        Console.WriteLine(m_nodes[tuple.Item1, tuple.Item2]);
+                        console.WriteLine(m_nodes[tuple.Item1, tuple.Item2]);
                     }
                 }
             }
@@ -293,6 +366,7 @@ namespace Core
                 {
                     if (!m_mapData.CellData[x, y].CellState.Equals(CellState.Occupied))
                     {
+                        if (m_mapData.CellData[x, y].DiseaseModel.Population > 0) Debugger.Break();
                         newNodes[x, y] = m_nodes[x, y];
                         newNodes[x, y].TimeSliceNdx++;
                         Interlocked.Increment(ref count1);
@@ -301,7 +375,13 @@ namespace Core
                     {
                         //EpidemicNode.m_debug = (x == 243 && y == 240);
                         //if ( x== 243 && y == 240 && m_nodes[x, y].TimeSliceNdx == 63) Debugger.Break();
-                        newNodes[x, y] = Behavior<DiseaseNode>.RunOneTimeslice(m_nodes[x, y]);
+                        DiseaseNode oldNode = m_nodes[x, y];
+                        DiseaseNode newNode = Behavior<DiseaseNode>.RunOneTimeslice(m_nodes[x, y]);
+                        newNodes[x, y] = newNode;
+                        if (oldNode.ContagiousAsymptomatic < EPSILON && newNode.ContagiousAsymptomatic > EPSILON)
+                        {
+                            ReportNewlyInfectedNode(new Coordinates() {X=x, Y=y});
+                        }
                         Interlocked.Increment(ref count2);
                     }
                 }
@@ -311,10 +391,10 @@ namespace Core
 #else
             } // Non-parallel.
 #endif
-            //Console.WriteLine($"New state computation takes {(DateTime.Now - now).TotalMilliseconds} mSec.");
+            //console.WriteLine($"New state computation takes {(DateTime.Now - now).TotalMilliseconds} mSec.");
             //now = DateTime.Now;
 
-            // Now propagate contagiouses to neighbors.
+            // Now propagate contagiousness to neighbors.
             Random r = new Random();
             int radius = 2;
             double maxDist = Math.Sqrt(2 * radius * radius);
@@ -352,8 +432,7 @@ namespace Core
                                     double factor = (1.0 - ((dist*dist)/((maxDist + 1)*(maxDist + 1))));
                                     double traveling = r.NextDouble()*factor*cursor.LocaleData.Mobility*
                                                        cursor.ContagiousAsymptomatic;
-                                    double newInfections = Math.Min(traveling*neighbor.ContractionRate,
-                                        neighbor.Susceptible);
+                                    double newInfections = Math.Min(traveling*neighbor.ContractionRate,neighbor.Susceptible);
                                     //if (newInfections > 0.5)
                                     {
                                         neighbor.ContagiousAsymptomatic += newInfections;
@@ -380,18 +459,19 @@ namespace Core
             } // Non-parallel.
 #endif
 
-            //Console.WriteLine($"Neighbor propagation takes {(DateTime.Now - now).TotalMilliseconds} mSec.");
+            //console.WriteLine($"Neighbor propagation takes {(DateTime.Now - now).TotalMilliseconds} mSec.");
             //now = DateTime.Now;
 
             double[] routeTransmittals = new double[0];
 #if ACCOMODATE_AIR_TRAVEL
             // Now process Air Travel.
+            int canceledFlights = 0;
+
             if (!NoAirTravelAtAll)
             {
                 int whichRoute = 0;
                 routeTransmittals = new double[BusyRoutes.Count];
                 double nPassengers;
-
 #if _USE_PARALLEL
                 Parallel.ForEach(m_data.BusyRoutes, rd =>
 #else
@@ -406,11 +486,11 @@ namespace Core
                     nPassengers = double.NegativeInfinity;
                     if (!fromWas.Quarantined && !toWas.Quarantined)
                     {
-                        if (!travelOnlyFromToApparentlyDiseaseFree || 
+                        if (!travelOnlyFromToApparentlyDiseaseFree ||
                             (fromWas.ContagiousSymptomatic < 0.2 &&
-                            fromWas.NonContagiousInfected < 0.2 &&
-                            toWas.NonContagiousInfected < 0.2 &&
-                            toWas.NonContagiousInfected < 0.2))
+                             fromWas.NonContagiousInfected < 0.2 &&
+                             toWas.NonContagiousInfected < 0.2 &&
+                             toWas.NonContagiousInfected < 0.2))
                         {
 
                             double fromDensity = fromWas.ContagiousAsymptomatic/fromWas.Population;
@@ -430,6 +510,17 @@ namespace Core
                                 fromWillBe.ContagiousAsymptomatic += nPassengers;
                                 toWillBe.ContagiousAsymptomatic -= Math.Min(toWillBe.ContagiousAsymptomatic, nPassengers);
                             }
+
+                            // In some data cases, airports' coordinates place them in Ocean cells. This is a skew/registration issue
+                            // with my XY<->LatLong translation, or (e.g. Gran Canaria) because the airport's on a small island. We 
+                            // hack this by simply changing it to "Occupied..."
+                            // TODO: Fix this: Fix registration or remove the route. (Removing the route is not acceptable 
+                            // for registration issues because, e.g. SFO might fall into the ocean. (LOL.)
+                            if ( toWillBe.MapCell.CellState != CellState.Occupied ) toWillBe.MapCell.CellState = CellState.Occupied;
+                        }
+                        else
+                        {
+                            canceledFlights++;
                         }
                     }
                     lock (routeTransmittals) routeTransmittals[whichRoute++] = nPassengers;
@@ -441,8 +532,27 @@ namespace Core
 #endif
 #endif
             }
+            else
+            {
+                canceledFlights = m_mapData.BusyRoutes.Count;
+            }
             m_nodes = newNodes;
-            NewIterationAvailable?.Invoke(newNodes, routeTransmittals, BusyRoutes);
+            if (canceledFlights > 0)
+            {
+                if (canceledFlights == m_mapData.BusyRoutes.Count)
+                {
+                    console.WriteLine($"{Executive.Now.ToLongDateString()} : All air routes canceled.");
+                }
+                else
+                {
+                    console.WriteLine(
+                        $"{Executive.Now.ToLongDateString()} : {canceledFlights} (of {m_mapData.BusyRoutes.Count}) air routes canceled.");
+                }
+            }
+
+            m_governments.ForEach(n=>n.Reassess(exec));
+
+            NewIterationAvailable?.Invoke(newNodes, routeTransmittals, BusyRoutes, m_allORTs);
         }
 
         /// <summary>
@@ -455,11 +565,20 @@ namespace Core
             //private set { m_controller = value; }
         }
 
-        public CountryData CountryForCode(string countryCode)
+        public SimCountryData CountryForCode(string countryCode)
         {
+            SimCountryData cd;
             // TODO: Make this a dictionary.
-            return m_countryData.FirstOrDefault(data => data.CountryCode.Equals(countryCode));
+            m_countryDataByCountryCodes.TryGetValue(countryCode, out cd);
+            return cd;
         }
+
+        public void ReportNewlyInfectedNode(Coordinates where)
+        {
+            OnNewlyInfectedNode?.Invoke(where);
+        }
+
+        public event Action<Coordinates> OnNewlyInfectedNode;
     }
 
 
@@ -526,7 +645,7 @@ namespace Core
                     {
                         m_execThread.Start();
                     }
-                    catch (ThreadAbortException tae)
+                    catch (ThreadAbortException)
                     {
                         
                     }

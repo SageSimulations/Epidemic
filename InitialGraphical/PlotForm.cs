@@ -58,7 +58,7 @@ namespace InitialGraphical
 
 
 
-        private void ModelOnNewIterationAvailable(DiseaseNode[,] diseaseNodes, double[] doubles, List<RouteData> routes)
+        private void ModelOnNewIterationAvailable(DiseaseNode[,] diseaseNodes, double[] doubles, List<RouteData> routes, List<OutbreakResponseTeam> allOrts)
         {
             for (int i = 0; i < m_plotView.Model.Series.Count; i++)
             {

@@ -9,7 +9,7 @@ namespace Core.Graphical
 {
     public class MapControl : PictureBox
     {
-
+        private ILineWriter console = Locator.Resolve<ILineWriter>("console");
         private Bitmap m_foundation;
         private Func<DiseaseNode, Color> m_colorMapper = DefaultColorMapper;
         private static double COLOR_THRESHOLD = 1E-5;
@@ -25,12 +25,12 @@ namespace Core.Graphical
             worldModel.NewIterationAvailable += Render;
         }
 
-        private void Render(DiseaseNode[,] nodes, double[] routeContamination, List<RouteData> busyRoutes)
+        private void Render(DiseaseNode[,] nodes, double[] routeContamination, List<RouteData> busyRoutes, List<OutbreakResponseTeam> orts)
         {
-            this.InvokeIfRequired(delegate (MapControl mc) { mc._Render(nodes, routeContamination, busyRoutes); });
+            this.InvokeIfRequired(delegate (MapControl mc) { mc._Render(nodes, routeContamination, busyRoutes, orts); });
         }
 
-        private void _Render(DiseaseNode[,] nodes, double[] routeContamination, List<RouteData> busyRoutes)
+        private void _Render(DiseaseNode[,] nodes, double[] routeContamination, List<RouteData> busyRoutes, List<OutbreakResponseTeam> orts)
         {
             int dataWidth = nodes.GetLength(0);
             int dataHeight = nodes.GetLength(1);
@@ -83,6 +83,14 @@ namespace Core.Graphical
                         }
                     }
                 }
+
+                // Now draw the Outbreak Response Teams.
+                foreach (OutbreakResponseTeam ort in orts)
+                {
+                    graphics.DrawEllipse(new Pen(Color.Black, 1.0f), HWrap(ort.Location.X-1), VWrap(ort.Location.Y-1), 2, 2);
+                    graphics.DrawEllipse(new Pen(ort.Color, 3.0f), HWrap(ort.Location.X - 2), VWrap(ort.Location.Y - 2), 4, 4);
+                    graphics.DrawEllipse(new Pen(Color.White, 1.0f), HWrap(ort.Location.X - 3), VWrap(ort.Location.Y - 3), 6, 6);
+                }
             }
             //Console.WriteLine($"There are {nActiveRoutes} active routes.");
             Image = image;
@@ -101,9 +109,9 @@ namespace Core.Graphical
 
             double d = Math.Max(Math.Min(6.0, Math.Log(severity) + 3), 0); // zero to six
 
-            if (d < 3.0) return Core.Utility.Gradient(Color.Yellow, Color.Red, d / 3); // Zero to 3 is yellow to red.
+            if (d < 3.0) return Utility.Gradient(Color.Yellow, Color.Red, d / 3); // Zero to 3 is yellow to red.
 
-            return Core.Utility.Gradient(Color.Red, Color.Black, Math.Min(((d - 3) / 3.0), 1.0));
+            return Utility.Gradient(Color.Red, Color.Black, Math.Min(((d - 3) / 3.0), 1.0));
             //return Color.FromArgb(alpha, red, green, 0); // <--- TODO: Population can go negative. Fix this.   
         }
 
@@ -120,10 +128,24 @@ namespace Core.Graphical
 
             double d = Math.Max(Math.Min(6.0, Math.Log(severity) + 3.0), 0); // zero to six
 
-            if (d < 3.0) return Core.Utility.Gradient(Color.Yellow, Color.Red, d / 3); // Zero to 3 is yellow to red.
+            if (d < 3.0) return Utility.Gradient(Color.Yellow, Color.Red, d / 3); // Zero to 3 is yellow to red.
 
-            return Core.Utility.Gradient(Color.Red, Color.Black, Math.Min(((d - 3) / 6.0), 1.0));
+            return Utility.Gradient(Color.Red, Color.Black, Math.Min(((d - 3) / 6.0), 1.0));
             //return Color.FromArgb(alpha, red, green, 0); // <--- TODO: Population can go negative. Fix this.   
+        }
+
+        private int HWrap(int x)
+        {
+            return x > 0
+                        ? x < MyWorldModel.Size.Width ? x : x - MyWorldModel.Size.Width
+                        : x + MyWorldModel.Size.Width;
+        }
+
+        private int VWrap(int y)
+        {
+            return y > 0
+                        ? y < MyWorldModel.Size.Height ? y : y - MyWorldModel.Size.Height
+                        : y + MyWorldModel.Size.Height;
         }
     }
 }

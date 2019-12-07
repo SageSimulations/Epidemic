@@ -6,8 +6,6 @@ using System.Windows.Forms;
 using Core;
 using Core.Graphical;
 using InitialGraphical;
-using Wibci.CountryReverseGeocode;
-using Wibci.CountryReverseGeocode.Models;
 
 namespace DiseaseView
 {
@@ -25,7 +23,7 @@ namespace DiseaseView
 
         private void InitialUI_Load(object sender, EventArgs e)
         {
-            m_worldModel = new WorldModel(m_data,CountryData.LoadFrom(@"../../../Data/CountryData.dat"));
+            m_worldModel = new WorldModel(m_data,SimCountryData.LoadFrom(@"../../../Data/CountryData.dat"));
             m_mapControl.AssignWorldModel(m_worldModel);
 
             PlotForm dc1 = new PlotForm("Mortality");
@@ -86,7 +84,7 @@ namespace DiseaseView
                 GraphicalUtilities.GraphicsCoordsToMapCoords(panel1.Size, m_worldModel.Size, args.X, args.Y, out x,
                     out y);
                 m_data.DataXYToLatLon(x, y, out lat, out lon);
-                string where = ReverseGeocodeService.CountryNameForLatAndLong(-lat,lon+2)??"Unknown";
+                string where = ReverseGeocodeService.CountryNameForLatAndLong(lat,lon+2)??"Unknown";
                 DiseaseNode n = m_worldModel.NodeAt(x, y);
                 toolStripStatusLabel1.Text = $"data[{x},{y}] is {where}, Lat {lat:f2}/Lon {lon:f2} {n:d4}";
                 Console.WriteLine(toolStripStatusLabel1.Text);

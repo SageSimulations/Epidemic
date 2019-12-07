@@ -5,6 +5,16 @@ More from https://en.wikipedia.org/wiki/List_of_ICAO_aircraft_type_designators a
 http://www.jacanaent.com/JacTechLib/07Aviation/AircraftTypeCodes.txt
 http://www.avcodes.co.uk/acrtypes.asp
 
+ORTs per government : 1 ORT per $T in GDP.
+ORT Capacity : 
 
+Level of Immunization:
+Static : NominalTgt  : Math.Min(1.0, HealthcareEffectiveness * (Baseline + 1*PerCapitaGDP/1000*Increment));
+Static : Prox
+imalTgt : Math.Min(1.0, HealthcareEffectiveness * (Baseline + 3*PerCapitaGDP/1000*Increment));
+Static : PresentTgt  : Math.Min(1.0, HealthcareEffectiveness * (Baseline + 10*PerCapitaGDP/1000*Increment));
 
+Baseline = 15%
+Increment = 1%
 
+Capacity = 

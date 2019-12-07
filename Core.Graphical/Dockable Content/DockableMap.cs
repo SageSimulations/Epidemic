@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
-using Wibci.CountryReverseGeocode;
-using Wibci.CountryReverseGeocode.Models;
+
 
 namespace Core.Graphical.Dockable_Content
 {
@@ -16,7 +15,6 @@ namespace Core.Graphical.Dockable_Content
 
     public partial class DockableMap : DockContent
     {
-
         public DockableMap()
         {
             InitializeComponent();
@@ -56,11 +54,11 @@ namespace Core.Graphical.Dockable_Content
                 args.Y, out x,
                 out y);
             DiseaseNode n = m_mapControl1.MyWorldModel.NodeAt(x, y);
-            CountryData cd = m_mapControl1.MyWorldModel.CountryForCode(n.MapCell.CountryCode);
-            CountrySelected?.Invoke(cd);
+            SimCountryData cd = m_mapControl1.MyWorldModel.CountryForCode(n.MapCell.CountryCode);
+            if ( cd != null ) CountrySelected?.Invoke(cd);
         }
 
-        public event Action<CountryData> CountrySelected;
+        public event Action<SimCountryData> CountrySelected;
 
         private void ReportVoxelData(object sender, MouseEventArgs args)
         {
@@ -91,11 +89,11 @@ namespace Core.Graphical.Dockable_Content
             m_mapControl1.Cursor = Cursors.Default;
             DateTime when = m_mapControl1.MyWorldModel.Executive.Now;
             if (when == DateTime.MinValue) when = m_mapControl1.MyWorldModel.ExecutionParameters.StartTime;
-            string countryName = ReverseGeocodeService.CountryNameForLatAndLong(-lat, lon + 2) ?? "Unknown";
+            string countryName = ReverseGeocodeService.CountryNameForLatAndLong(lat, lon + 2) ?? "Unknown";
             string text =
                 $"{when} : Infection introduced at Lat = {Math.Abs(lat):F0} degrees {(lat < 0 ? "North" : "South")}, Lon = {Math.Abs(lon):F0} degrees {(lon > 0 ? "East" : "West")}. ({countryName})";
 
-            Console.Out.WriteLine(text);
+            Console.WriteLine(text);
 
             SetMapMode(MapMode.Informational);
         }
@@ -105,7 +103,11 @@ namespace Core.Graphical.Dockable_Content
             Control me = this;
             while (me.Parent != null) me = me.Parent;
             ToolStrip ts = (ToolStrip)me.Controls["m_statusStrip"];
-            ts.Items["m_informationalStatusText"].Text = status;
+            ToolStripItem tsi = ts?.Items["m_informationalStatusText"];
+            if (tsi != null)
+            {
+                tsi.Text = status;
+            }
         }
     }
 }

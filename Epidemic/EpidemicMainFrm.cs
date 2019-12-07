@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
@@ -9,12 +10,14 @@ using Core;
 using Core.Graphical;
 using Core.Graphical.Dockable_Content;
 using Highpoint.Sage.SimCore;
+using Newtonsoft.Json.Linq;
 using WeifenLuo.WinFormsUI.Docking;
 
 namespace Epidemic
 {
     public partial class Epidemic : Form
     {
+        private ILineWriter m_console;
         private Image m_imgRun;
         private Image m_imgPause;
 
@@ -22,12 +25,12 @@ namespace Epidemic
         //private SplashScreen _splashScreen;
         //private bool _showSplash = true;
         private DockableMap m_map;
-        private DockableConsole m_console;
 
         public WorldModel WorldModel { get; private set; }
 
         public Epidemic()
         {
+
             InitializeComponent();
             m_imgRun = Properties.Resources.Run;
             m_imgPause = Properties.Resources.Pause;
@@ -47,7 +50,23 @@ namespace Epidemic
 
         private void LoadNewDefaultModelAndExtraStuff()
         {
-            WorldModel = new WorldModel(MapData.LoadFrom("Data/MapData.dat"), CountryData.LoadFrom("Data/CountryData.dat"));
+            m_console = new DockableConsole("Log");
+            Locator.Register(() => m_console, "console");
+
+            List<OutbreakResponseTeam> orts = new List<OutbreakResponseTeam>();
+
+            Dictionary<string, Tuple<int, Color>> ortCounts = new Dictionary<string, Tuple<int,Color>>();
+            string json = File.ReadAllText(@"Data/Governments.dat");
+            dynamic d = JObject.Parse(json);
+            foreach (dynamic govt in d["Governments"])
+            {
+                string cc = govt["cc"];
+                int numberOfORTs = govt["ORTs"];
+                Color color = Color.FromName(govt["Color"].ToString());
+                ortCounts.Add(cc,new Tuple<int, Color> (numberOfORTs, color));
+            }
+
+            WorldModel = new WorldModel(MapData.LoadFrom("Data/MapData.dat"), SimCountryData.LoadFrom("Data/CountryData.dat"), ortCounts);
             WorldModel.Executive.ClockAboutToChange += exec =>
             {
                 DateTime newTime = ((IExecEvent) exec.EventList[0]).When;
@@ -64,7 +83,7 @@ namespace Epidemic
 
             m_map = new DockableMap();
             m_map.AssignWorldModel(WorldModel);
-            DockableChart dc1 = new DockableChart("Mortality");
+            DockableTrendChart dc1 = new DockableTrendChart("Mortality");
             dc1.Bind(WorldModel,
                 new[]
                 {
@@ -77,7 +96,7 @@ namespace Epidemic
                     "Dead"
                 });
 
-            DockableChart dc2 = new DockableChart("Disease Stages");
+            DockableTrendChart dc2 = new DockableTrendChart("Disease Stages");
             dc2.Bind(WorldModel,
                 new[]
                 {
@@ -94,6 +113,14 @@ namespace Epidemic
                     "Immune"
                 });
 
+            DockableRegionPieChart drpc1 = new DockableRegionPieChart("Nepal");
+            drpc1.Bind(WorldModel, "NPL");
+            drpc1.Show(m_dockPanel, DockState.DockLeft);
+
+            DockableRegionPieChart drpc2 = new DockableRegionPieChart("Ireland");
+            drpc2.Bind(WorldModel, "IRL");
+            drpc2.Show(m_dockPanel, DockState.DockLeft);
+
             DockablePropertyGrid dpg = new DockablePropertyGrid()
             {
                 SelectedObject = WorldModel.ExecutionParameters,
@@ -103,18 +130,16 @@ namespace Epidemic
 
             DockablePropertyGrid country = new DockablePropertyGrid()
             {
-                SelectedObject = WorldModel.CountryData[0],//Governments[0],
+                SelectedObject = WorldModel.CountryForCode("USA"),
                 TabText = "Selected Country",
                 ToolTipText = "Selected Country",
             };
             country.ToolbarVisible = false;
             m_map.CountrySelected += data => country.SelectedObject = data;
 
-            m_console = new DockableConsole("Log");
-
             m_map.MdiParent = this;
             m_map.Show(m_dockPanel, DockState.Document);
-            m_console.Show(m_dockPanel, DockState.DockBottom);
+            ((DockableConsole)m_console).Show(m_dockPanel, DockState.DockBottom);
             country.Show(dpg.Pane, DockAlignment.Bottom,0.6);
             dc1.Show(m_dockPanel, DockState.DockRight);
             dc2.Show(dc1.Pane, DockAlignment.Bottom, 0.5);
@@ -123,6 +148,11 @@ namespace Epidemic
         }
 
         private Func<DiseaseNode[,], double[], List<RouteData>, double> GetTotal(Func<DiseaseNode, double> selector)
+        {
+            return (nodes, doubles, arg3) => nodes.Cast<DiseaseNode>().Sum(selector);
+        }
+
+        private Func<DiseaseNode[,], double[], List<RouteData>, double> ForCountry(Func<DiseaseNode, double> selector)
         {
             return (nodes, doubles, arg3) => nodes.Cast<DiseaseNode>().Sum(selector);
         }

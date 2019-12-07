@@ -27,20 +27,20 @@ namespace OneNode
             }
             else
             {
-                List<CountryData> records;
-                using (var reader = new StreamReader("../../../OneNode/Data/MyData.csv"))
+                List<SimCountryData> records;
+                using (var reader = new StreamReader("../../../Data/MyData.csv"))
                 using (var csv = new CsvReader(reader))
                 {
                     csv.Configuration.HasHeaderRecord = true;
                     csv.Configuration.HeaderValidated = null;
-                    records = new List<CountryData>(csv.GetRecords<CountryData>());
+                    records = new List<SimCountryData>(csv.GetRecords<SimCountryData>());
                 }
 
                 Policy p = new Policy(Policy.DEFAULT);
                 Locale l = new Locale(Locale.DEFAULT);
                 Disease d = new Disease(Disease.DEFAULT);
 
-                foreach (CountryData country in records)
+                foreach (SimCountryData country in records)
                 {
                     l.Population = country.Population;
                     l.HealthCareEffectiveness = country.HealthCareEffectiveness*country.HealthCareEffectiveness;
@@ -51,7 +51,7 @@ namespace OneNode
                     l.Sanitation = country.Sanitation*country.Sanitation;
                     l.SocialStability = country.SocialStability;
 
-                    RunProgram<DiseaseNode>.Run(args, Integrator.Euler, null, null, null, null, new DiseaseNode(p, l, d) { ContagiousAsymptomatic = 1 });
+                    RunProgram<DiseaseNode>.Run(args, Integrator.Euler, null, $"D:/Desktop/DiseaseModelJunque/ComparativeCharts/{country.CountryCode}.csv", null, null, new DiseaseNode(p, l, d) { ContagiousAsymptomatic = 1 });
                     //foreach (EpidemicNode s in Behavior<EpidemicNode>.Run(new EpidemicNode(p, l, d), Integrator.Euler))
                     //{
                     //    Console.Write("{0:0.000},", s.TimeSliceNdx*s.TimeStep);
@@ -61,7 +61,7 @@ namespace OneNode
                     //    }
                     //    Console.WriteLine();
                     //}
-                    break;
+                    //break;
                 }
             }
 #pragma warning restore 162

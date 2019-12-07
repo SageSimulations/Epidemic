@@ -56,8 +56,8 @@ namespace Core.Graphical.Dockable_Content
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "DockableMap";
             this.Padding = new System.Windows.Forms.Padding(0, 3, 0, 3);
-            this.TabText = "DockableMap";
-            this.Text = "DockableMap";
+            this.TabText = "World Map";
+            this.Text = "World Map";
             ((System.ComponentModel.ISupportInitialize)(this.m_mapControl1)).EndInit();
             this.ResumeLayout(false);
 

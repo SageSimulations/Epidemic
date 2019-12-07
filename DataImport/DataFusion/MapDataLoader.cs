@@ -14,6 +14,7 @@ namespace DataFusion
     public static class MapDataLoader
     {
 
+
         public static MapData FromASC(string densityDataFile, string landAreaFile, string waterAreaFile,
             string airportDataFile, string routeDataFile, string equipmentDataFile, string equipmentLoadingDataFile)
         {

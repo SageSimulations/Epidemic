@@ -38,9 +38,9 @@ namespace Core.Graphical
             m_plotTarget = plotTarget;
         }
 
-        private void ModelOnNewIterationAvailable(DiseaseNode[,] diseaseNodes, double[] doubles, List<RouteData> arg3)
+        private void ModelOnNewIterationAvailable(DiseaseNode[,] diseaseNodes, double[] doubles, List<RouteData> routes, List<OutbreakResponseTeam> allOrts)
         {
-            ((LineSeries)m_series).Points.Add(new DataPoint(diseaseNodes[0, 0].TimeSliceNdx * diseaseNodes[0, 0].TimeStep, m_plotTarget(diseaseNodes, doubles, arg3)));
+            ((LineSeries)m_series).Points.Add(new DataPoint(diseaseNodes[0, 0].TimeSliceNdx * diseaseNodes[0, 0].TimeStep, m_plotTarget(diseaseNodes, doubles, routes)));
             m_plotModel.InvalidatePlot(true);
         }
     }

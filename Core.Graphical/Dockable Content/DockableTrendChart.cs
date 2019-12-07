@@ -6,13 +6,13 @@ using OxyPlot.Series;
 
 namespace Core.Graphical.Dockable_Content
 {
-    public partial class DockableChart : WeifenLuo.WinFormsUI.Docking.DockContent
+    public partial class DockableTrendChart : WeifenLuo.WinFormsUI.Docking.DockContent
     {
         private Func<DiseaseNode[,], double[], List<RouteData>, double>[] m_plotTargets;
         private WorldModel m_model;
         private readonly PlotModel m_plotModel;
 
-        public DockableChart(string chartTitle) : base()
+        public DockableTrendChart(string chartTitle) : base()
         {
             ToolTipText = chartTitle;
 
@@ -41,7 +41,7 @@ namespace Core.Graphical.Dockable_Content
             m_plotTargets = plotTargets;
         }
 
-        private void ModelOnNewIterationAvailable(DiseaseNode[,] diseaseNodes, double[] doubles, List<RouteData> routeData)
+        private void ModelOnNewIterationAvailable(DiseaseNode[,] diseaseNodes, double[] doubles, List<RouteData> routeData, List<OutbreakResponseTeam> allOrts )
         {
             for ( int i = 0 ; i < m_plotModel.Series.Count; i++) {
                 ((LineSeries)m_plotModel.Series[i]).Points.Add(

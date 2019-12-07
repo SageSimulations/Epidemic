@@ -1,0 +1,39 @@
+{
+  "Governments": [
+    {
+      "cc": "USA",
+      "ORTs" : 15,
+      "Color": "Blue"
+    },
+    {
+      "cc": "FRA",
+      "ORTs": 3,
+      "Color": "White"
+    },
+    {
+      "cc": "CAN",
+      "ORTs": 2,
+      "Color": "Green"
+    },
+    {
+      "cc": "GER",
+      "ORTs": 4,
+      "Color": "Black"
+    },
+    {
+      "cc": "ITA",
+      "ORTs": 2,
+      "Color": "Orange"
+    },
+    {
+      "cc": "JPN",
+      "ORTs": 6,
+      "Color": "Red"
+    },
+    {
+      "cc": "GBR",
+      "ORTs": 3,
+      "Color": "Light Blue"
+    }
+  ]
+}

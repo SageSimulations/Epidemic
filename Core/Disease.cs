@@ -157,9 +157,5 @@ namespace Core
             NominalPopulationDensity = 300,
             NominalSymptomaticMortalityRate = 0.000005
         };
-        /// <summary>
-        /// Class Trick.
-        /// </summary>
-        private class Trick { }
     }
 }

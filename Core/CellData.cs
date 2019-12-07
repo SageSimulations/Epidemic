@@ -136,6 +136,7 @@ namespace Core
                 }
                 return m_cellState.Value;
             }
+            set { m_cellState = value; }
         }
 
         public string CountryCode { get; set; }

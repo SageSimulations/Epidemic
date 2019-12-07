@@ -31,6 +31,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
       <HintPath>..\packages\OxyPlot.Core.1.0.0\lib\net45\OxyPlot.dll</HintPath>
       <Private>True</Private>
@@ -70,17 +74,25 @@
       <HintPath>..\packages\DockPanelSuite.ThemeVS2015.3.0.6\lib\net40\WeifenLuo.WinFormsUI.Docking.ThemeVS2015.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Wibci.CountryReverseGeocode">
-      <HintPath>..\InitialGraphical\bin\Debug\Wibci.CountryReverseGeocode.dll</HintPath>
+    <Reference Include="Wibci.CountryReverseGeocode, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Wibci.CountryReverseGeocode.1.1.0\lib\Wibci.CountryReverseGeocode.dll</HintPath>
+      <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleWriter.cs" />
-    <Compile Include="Dockable Content\DockableChart.cs">
+    <Compile Include="CustomTypeConverters.cs" />
+    <Compile Include="Dockable Content\DockableRegionPieChart.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Dockable Content\DockableChart.Designer.cs">
-      <DependentUpon>DockableChart.cs</DependentUpon>
+    <Compile Include="Dockable Content\DockableRegionPieChart.Designer.cs">
+      <DependentUpon>DockableRegionPieChart.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Dockable Content\DockableTrendChart.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Dockable Content\DockableTrendChart.Designer.cs">
+      <DependentUpon>DockableTrendChart.cs</DependentUpon>
     </Compile>
     <Compile Include="Dockable Content\DockableConsole.cs">
       <SubType>Form</SubType>
@@ -120,8 +132,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Dockable Content\DockableChart.resx">
-      <DependentUpon>DockableChart.cs</DependentUpon>
+    <EmbeddedResource Include="Dockable Content\DockableRegionPieChart.resx">
+      <DependentUpon>DockableRegionPieChart.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Dockable Content\DockableTrendChart.resx">
+      <DependentUpon>DockableTrendChart.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Dockable Content\DockableConsole.resx">
       <DependentUpon>DockableConsole.cs</DependentUpon>

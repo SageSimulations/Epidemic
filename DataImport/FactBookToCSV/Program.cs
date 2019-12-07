@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.CSharp.RuntimeBinder;
 using Newtonsoft.Json.Linq;
 using Core;
 using CsvHelper;
-using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
 
 namespace FactBookToCSV
@@ -28,19 +26,16 @@ namespace FactBookToCSV
                     }
                 }
             }
-
-
-            List<CountryData> records;
             string json = File.ReadAllText(@"../../Data/Factbook.json");
             dynamic d = JObject.Parse(json);
 
             using (TextWriter tw = new StreamWriter(@"../../../../Data/CountryData.dat"))
             {
-                tw.WriteLine(CountryData.CSVHeader);
-                List<CountryData> countries = new List<CountryData>();
+                tw.WriteLine(SimCountryData.CSVHeader);
+                List<SimCountryData> countries = new List<SimCountryData>();
                 //foreach (string countryName in countriesOfInterest)
 
-                List<String> skipList = new List<string>(m_notCountries);
+                List<String> skipList = new List<string>(m_skipList);
                 // Special Cases:
                 // d["countries"]["Chad"].energy.electricity.access.total_electrification = 33;
                 JObject chadElectricity = d["countries"]["chad"].data.energy.electricity as JObject;
@@ -49,7 +44,10 @@ namespace FactBookToCSV
                 //nauruElectricity.Add("access", JObject.Parse(@"{""populationWithElectricity"":{""value"":""66""}}"));
                 JObject taiwanElectricity = d["countries"]["taiwan"].data.energy.electricity as JObject;
                 taiwanElectricity.Add("access", JObject.Parse(@"{""populationWithElectricity"":{""value"":""99""}}"));
-
+                JObject FalklandsElectricity = d["countries"]["falkland_islands_islas_malvinas"].data.energy.electricity as JObject;
+                FalklandsElectricity.Add("access", JObject.Parse(@"{""populationWithElectricity"":{""value"":""99""}}"));
+                JObject WesternSaharaElectricity = d["countries"]["western_sahara"].data.energy.electricity as JObject;
+                WesternSaharaElectricity.Add("access", JObject.Parse(@"{""populationWithElectricity"":{""value"":""99""}}"));
 
                 foreach (var country in d["countries"])
                 {
@@ -120,9 +118,9 @@ namespace FactBookToCSV
                         failedAt = "socialStability";
                         var socialStability = Math.Sqrt(((literacy*literacy) + (populationWithElectricity*populationWithElectricity))/2.0);
 
-                        CountryData countryData = new CountryData()
+                        SimCountryData simCountryData = new SimCountryData()
                         {
-                            Country = name,
+                            Name = name,
                             BirthRate = birthRate/365.0,
                             DeathRate = deathRate/365.0,
                             HealthSpendPerCap = healthSpendGDP*totalGDP/population,
@@ -133,12 +131,12 @@ namespace FactBookToCSV
                             SocialStability = socialStability,
                             CountryCode = countryCode
                         };
-                        countries.Add(countryData);
-                        tw.WriteLine(countryData.AsCSV);
+                        countries.Add(simCountryData);
+                        tw.WriteLine(simCountryData.AsCSV);
                     }
                     catch (RuntimeBinderException rbe)
                     {
-                        Console.WriteLine($"\"{name}\", {failedAt}");
+                        Console.WriteLine($"\"{name}\" read failed at {failedAt}");
                         // TODO: Log failure
                     }
                 }
@@ -176,7 +174,7 @@ namespace FactBookToCSV
         private static readonly double MISSING_GDP_HEALTH_SPEND = 50; // North Korea and Somalia lack data. $50 per person per year seems about right.
         private static readonly double MISSING_SANITATION = 0.85; // The countries missing sanitation data are (*mostly) very good. (Bermuda, Curacao, Hong Kong, Liechtenstein, New Zealand, Taiwan)
 
-        // Okay, Nauru is, but ... 
-        private static readonly string[] m_notCountries = {"World", "Akrotiri", "American Samoa", "Anguilla", "Antarctica", "Arctic Ocean", "Aruba", "Ashmore And Cartier Islands", "Atlantic Ocean", "Bermuda", "Bouvet Island", "British Indian Ocean Territory", "British Virgin Islands", "Cayman Islands", "Christmas Island", "Clipperton Island", "Cocos (Keeling) Islands", "Comoros", "Cook Islands", "Coral Sea Islands", "Curacao", "Dhekelia", "Falkland Islands (Islas Malvinas)", "Faroe Islands", "Fiji", "French Polynesia", "Gaza Strip", "Gibraltar", "Guam", "Guernsey", "Guinea", "Heard Island And Mcdonald Islands", "Holy See (Vatican City)", "Indian Ocean", "Isle Of Man", "Jan Mayen", "Jersey", "Kiribati", "Kosovo", "Macau", "Marshall Islands", "Micronesia, Federated States Of", "Montserrat", "Nauru", "Navassa Island", "New Caledonia", "Niue", "Norfolk Island", "Northern Mariana Islands", "Pacific Ocean", "Paracel Islands", "Pitcairn Islands", "Puerto Rico", "Saint Barthelemy", "Saint Helena, Ascension, And Tristan Da Cunha", "Saint Kitts And Nevis", "Saint Lucia", "Saint Martin", "Saint Pierre And Miquelon", "Saint Vincent And The Grenadines", "San Marino", "Sao Tome And Principe", "Sint Maarten", "Southern Ocean", "South Georgia And South Sandwich Islands", "Spratly Islands", "Suriname", "Svalbard", "Tokelau", "Turks And Caicos Islands", "Uganda", "Virgin Islands", "Wake Island", "Wallis And Futuna", "West Bank", "Western Sahara", "European Union"};
+        // Some, like Kosovo, have very, very poor data, so we skip them, and map them to a nearby country at run time.
+        private static readonly string[] m_skipList = {"Kosovo", "World", "Akrotiri", "American Samoa", "Anguilla", "Antarctica", "Arctic Ocean", "Aruba", "Ashmore And Cartier Islands", "Atlantic Ocean", "Bermuda", "Bouvet Island", "British Indian Ocean Territory", "British Virgin Islands", "Cayman Islands", "Christmas Island", "Clipperton Island", "Cocos (Keeling) Islands", "Comoros", "Cook Islands", "Coral Sea Islands", "Curacao", "Dhekelia", "Faroe Islands", "French Polynesia", "Gaza Strip", "Gibraltar", "Guam", "Guernsey", "Heard Island And Mcdonald Islands", "Holy See (Vatican City)", "Indian Ocean", "Isle Of Man", "Jan Mayen", "Jersey", "Kiribati", "Macau", "Marshall Islands", "Micronesia, Federated States Of", "Montserrat", "Nauru", "Navassa Island", "Niue", "Norfolk Island", "Northern Mariana Islands", "Pacific Ocean", "Paracel Islands", "Pitcairn Islands", "Saint Barthelemy", "Saint Helena, Ascension, And Tristan Da Cunha", "Saint Kitts And Nevis", "Saint Lucia", "Saint Martin", "Saint Pierre And Miquelon", "Saint Vincent And The Grenadines", "San Marino", "Sao Tome And Principe", "Sint Maarten", "Southern Ocean", "South Georgia And South Sandwich Islands", "Spratly Islands", "Svalbard", "Tokelau", "Turks And Caicos Islands", "Virgin Islands", "Wake Island", "Wallis And Futuna", "West Bank", "European Union"};
     }
 }

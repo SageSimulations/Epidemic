@@ -39,7 +39,7 @@ namespace Core
         /// <param name="fromPolicy">From policy.</param>
         public Policy(Policy fromPolicy)
         {
-            this.TargetImmunizationRate = fromPolicy.TargetImmunizationRate;
+            TargetImmunizationRate = fromPolicy.TargetImmunizationRate;
         }
     }
 }
