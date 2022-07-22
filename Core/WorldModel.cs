@@ -39,6 +39,14 @@ namespace Core
             return false;
         }
 
+        public override int GetHashCode()
+        {
+            int hashCode = 1861411795;
+            hashCode = hashCode * -1521134295 + X.GetHashCode();
+            hashCode = hashCode * -1521134295 + Y.GetHashCode();
+            return hashCode;
+        }
+
         public override string ToString()
         {
             return $"({X}, {Y})";

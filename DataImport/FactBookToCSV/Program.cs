@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using Core;
 using CsvHelper;
 using CsvHelper.Configuration.Attributes;
+using CsvHelper.Configuration;
 
 namespace FactBookToCSV
 {
@@ -16,13 +17,16 @@ namespace FactBookToCSV
             Dictionary<string,string> countryCodeForName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             using (var reader = new StreamReader(@"../../Data/ISO_3166-1_alpha-3.tdf"))
             {
-                using (
-                    var csv = new CsvReader(reader) { Configuration = { Delimiter = "\t", HasHeaderRecord = false}}
-                    )
+                var config = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
                 {
+                    HasHeaderRecord = false,
+                    Delimiter = "\t",
+                    IgnoreBlankLines = false
+                };
+                using (var csv = new CsvReader(reader, config)) {
                     foreach (CountryNameAndCode countryNameAndCode in csv.GetRecords<CountryNameAndCode>())
                     {
-                        countryCodeForName.Add(countryNameAndCode.Name,countryNameAndCode.Code);
+                        countryCodeForName.Add(countryNameAndCode.Name, countryNameAndCode.Code);
                     }
                 }
             }

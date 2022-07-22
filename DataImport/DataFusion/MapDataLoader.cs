@@ -138,7 +138,7 @@ namespace DataFusion
             int airportRankCutoff = 250;
             List<AirportData> airports;
             List<RouteData> routes;
-            Configuration configuration = new Configuration()
+            var configuration = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
             {
                 HasHeaderRecord = false,
                 MissingFieldFound = null,

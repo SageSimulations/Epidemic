@@ -12,7 +12,7 @@
 // <summary></summary>
 // ***********************************************************************
 using System;
-using MySql.Data.MySqlClient;
+using MySqlConnector;
 
 namespace Core.Data
 {

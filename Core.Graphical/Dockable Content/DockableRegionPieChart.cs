@@ -7,7 +7,9 @@ namespace Core.Graphical.Dockable_Content
 {
     public partial class DockableRegionPieChart : WeifenLuo.WinFormsUI.Docking.DockContent
     {
+#pragma warning disable IDE0044 // Add readonly modifier
         private Func<DiseaseNode[,], double[], List<RouteData>, double>[] m_plotTargets;
+#pragma warning restore IDE0044 // Add readonly modifier
         private WorldModel m_model;
         private readonly PlotModel m_plotModel;
         private List<Tuple<int, int>> m_cellsOfInterest; 

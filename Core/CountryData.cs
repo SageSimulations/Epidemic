@@ -133,11 +133,17 @@ namespace Core
         public static List<SimCountryData> LoadFrom(string sourcePath)
         {
             List<SimCountryData> records;
+            var configuration = new CsvConfiguration(System.Globalization.CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = false,
+                HeaderValidated = null,
+            };
+            
             using (var reader = new StreamReader(sourcePath))
             {
-                using (var csv = new CsvReader(reader, new Configuration() {HasHeaderRecord = true, HeaderValidated = null, }))
+                using (var csv = new CsvReader(reader, configuration))
                 {
-                    csv.Configuration.RegisterClassMap<CountryDataMap>();
+                    csv.Context.RegisterClassMap<CountryDataMap>();
                     var v = csv.GetRecords<SimCountryData>();
                     records = new List<SimCountryData>(v);
                 }
